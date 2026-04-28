@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-'use server'
-// import { getAccessToken } from "./getAccessToken";
-
 interface Pagination {
   total: number
   limit: number
@@ -21,10 +17,7 @@ type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 interface FetchOptions {
   method?: HttpMethod
   body?: any
-  tags?: string[]
-  token?: string
   headers?: Record<string, string>
-  cache?: RequestCache
 }
 
 export const myFetch = async <T = any>(
@@ -32,13 +25,9 @@ export const myFetch = async <T = any>(
   {
     method = 'GET',
     body,
-    tags,
-    token,
     headers = {},
-    cache = 'force-cache',
   }: FetchOptions = {}
 ): Promise<FetchResponse<T>> => {
-  //   const accessToken = await getAccessToken();
   const isFormData = body instanceof FormData
   const hasBody = body !== undefined && method !== 'GET'
 
@@ -46,8 +35,6 @@ export const myFetch = async <T = any>(
     Accept: 'application/json',
     ...headers,
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-    // ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    ...(token ? { Authorization: `${token}` } : {}),
   }
 
   try {
@@ -55,8 +42,6 @@ export const myFetch = async <T = any>(
       method,
       headers: reqHeaders,
       ...(hasBody && { body: isFormData ? body : JSON.stringify(body) }),
-      ...(tags && { next: { tags } }),
-      ...(!(method === 'GET') ? { cache: 'no-store' } : { cache: cache }),
     })
 
     const json = await res.json()
@@ -72,7 +57,7 @@ export const myFetch = async <T = any>(
     return {
       success: true,
       message: json?.message || 'Success',
-      data: json?.data ?? json, 
+      data: json?.data ?? json,
       error: null,
     }
   } catch (err) {
